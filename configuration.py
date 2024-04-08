@@ -1,5 +1,7 @@
 import gymnasium as gym
-
+from matplotlib import pyplot as plt
+import highway_env
+highway_env.register_highway_envs()
 env = gym.make("highway-fast-v0", render_mode="rgb_array")
 
 config = {
@@ -50,3 +52,10 @@ config = {
 
 env.unwrapped.configure(config)
 print(env.reset())
+for _ in range(3):
+    action = env.action_type.actions_indexes["IDLE"]
+    obs, reward, done, truncated, info = env.step(action)
+    env.render()
+
+plt.imshow(env.render())
+plt.show()

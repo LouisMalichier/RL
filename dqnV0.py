@@ -24,17 +24,20 @@ class DeepQNetwork(nn.Module):
         self.to(self.device)
 
     def forward(self, observation):
-        
+        #print("type(obs)", observation.dtype)
+        #print("obs", observation)
+        #if observation.dtype == object : print(observation)
         state = T.Tensor(observation).to(self.device)
         #observation = observation.view(-1)
         x = F.relu(self.fc1(state))
         x = F.relu(self.fc2(x))
         actions = self.fc3(x)
+        print("actions", actions)
         return actions
 
 class Agent(object):
     def __init__(self, gamma, epsilon, alpha, input_dims, batch_size, n_actions,
-                 max_mem_size=100000, eps_end=0.01, eps_dec=0.996):
+                 max_mem_size=4, eps_end=0.01, eps_dec=0.996):
         self.GAMMA = gamma
         self.EPSILON = epsilon
         self.EPS_MIN = eps_end
@@ -59,12 +62,18 @@ class Agent(object):
 
     def storeTransition(self, state, action, reward, state_, terminal):
         index = self.mem_cntr % self.mem_size
+        #print("mem_size", self.mem_size)
+        #print("mem_count", self.mem_cntr)
+        #print("index", index)
 
         # Assign the NumPy array to one part of self.state_memory
         self.state_memory[index, 0] = state[0]
+        print("State 0 : Obs", state[0])
 
         # Assign the dictionary to another part of self.state_memory (e.g., as metadata)
         self.state_memory[index, 1] = state[1]
+        #print("state_memory ", self.state_memory)
+
         #self.state_memory[index] = state
         actions = np.zeros(self.n_actions)
         actions[action] = 1.0
@@ -77,7 +86,10 @@ class Agent(object):
 
     def chooseAction(self, observation):
         rand = np.random.random()
+        #("rand", rand)
         actions = self.Q_eval.forward(observation)
+        #print("actions", actions)
+        #print("argmax", T.argmax(actions))
         if rand > self.EPSILON:
             action = T.argmax(actions).item()
         else:
@@ -92,25 +104,37 @@ class Agent(object):
                                     else self.mem_size
 
             batch = np.random.choice(max_mem, self.batch_size)
-            state_batch = self.state_memory[batch]
+            #print("batch nb", batch)
+            state_batch = self.state_memory[batch[0], 0]
+            print("state_batch", state_batch)
             action_batch = self.action_memory[batch]
             action_values = np.array(self.action_space, dtype=np.int32)
             action_indices = np.dot(action_batch, action_values)
             reward_batch = self.reward_memory[batch]
-            new_state_batch = self.new_state_memory[batch]
+            new_state_batch = self.new_state_memory[batch[0], 0]
+            #print("new_state_batch", new_state_batch)
             terminal_batch = self.terminal_memory[batch]
 
             reward_batch = T.Tensor(reward_batch).to(self.Q_eval.device)
             terminal_batch = T.Tensor(terminal_batch).to(self.Q_eval.device)
+            print("terminal_batch", terminal_batch)
 
             q_eval = self.Q_eval.forward(state_batch).to(self.Q_eval.device)
             #q_target = self.Q_eval.forward(state_batch).to(self.Q_eval.device)
             q_target = q_eval.clone()
+            print("q_target", q_target)
             q_next = self.Q_eval.forward(new_state_batch).to(self.Q_eval.device)
+            print("q_next", q_next)
 
             batch_index = np.arange(self.batch_size, dtype=np.int32)
-            q_target[batch_index, action_indices] = reward_batch + \
-                                self.GAMMA*T.max(q_next, dim=1)[0]*terminal_batch
+            print("type batch_index", type(batch_index), batch_index)
+            print("type action_indices", type(action_indices), action_indices)
+            print("batch_index[0], action_indices[0]", batch_index[0], action_indices[0])
+            #print("q_target[0,0] ", q_target[0])
+            #rint("T.max(q_next, dim=0)[0]", T.max(q_next, dim=0)[0])
+            print("reward_batch + self.GAMMA*T.max(q_next, dim=0)[0]*terminal_batch", reward_batch + self.GAMMA*T.max(q_next, dim=0)[0]*terminal_batch)
+            print("q_target[batch_index]", q_target[batch_index])
+            q_target[batch_index] = reward_batch + self.GAMMA*T.max(q_next, dim=0)[0]*terminal_batch
 
             self.EPSILON = self.EPSILON*self.EPS_DEC if self.EPSILON > \
                            self.EPS_MIN else self.EPS_MIN

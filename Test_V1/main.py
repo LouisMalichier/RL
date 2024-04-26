@@ -18,7 +18,7 @@ if __name__ == '__main__':
         score = 0
         done = False
         observation = env.reset()
-        print("obs post reset", observation)
+        #print("obs post reset", observation)
         #print("observation", observation)
         while not done:
             action = agent.chooseAction(observation[0])

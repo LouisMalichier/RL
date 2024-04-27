@@ -3,6 +3,7 @@ Le projet est découpé en 3 folders contenant chacun l'un des 3 environnements 
 
 - Folder Parking: Mise en pratique d'un modèle continu sur l'environnement "parking"
 - Descriptif: Le folder Parking contient: 
+        - config_parking.py: fichier de configuration 
         - Main.py: fichier principal d'utilisation du modèle 
         - Model.py: fichier de création du modèle 
         - utils.py: fichier de fonctions de créations de visualisations 

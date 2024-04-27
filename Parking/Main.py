@@ -10,8 +10,9 @@ from tqdm.notebook import trange
 from tqdm.notebook import trange
 from utils import record_videos, show_videos
 import Model
+from config_parking import config_parking
 
-env = gym.make("parking-v0")
+env = gym.make("parking-v0", config=config_parking)
 data = Model.collect_interaction_data(env)
 print("Sample transition:", data[0])
 

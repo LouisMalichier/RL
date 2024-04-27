@@ -1,4 +1,5 @@
 import gymnasium as gym
+import numpy as np
 
 env_parking = gym.make("parking-v0")
 
